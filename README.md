@@ -1,2 +1,4 @@
 # highcharts
-highcharts 图表实例
+highcharts 实现多图表进行联动展示
+
+
