@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>测试图表</title>
+<script src="http://cdn.bootcss.com/jquery/2.1.4/jquery.js"></script>
+
+<link
+	href="http://cdn.bootcss.com/bootstrap/4.0.0-alpha.2/css/bootstrap.css"
+	rel="stylesheet">
+<script
+	src="http://cdn.bootcss.com/bootstrap/4.0.0-alpha.2/js/bootstrap.js"></script>
+
+
+<script src="http://cdn.bootcss.com/highcharts/4.2.3/highcharts.src.js"></script>
+<script
+	src="http://cdn.bootcss.com/highcharts/4.2.3/highcharts-more.src.js"></script>
+
+<!-- 链接自定义工具插件 -->
+<script type="text/javascript" src="highcharts-group.js"></script>
+<script type="text/javascript" src="http://cdn.bootcss.com/highcharts/4.2.3/themes/dark-blue.js"></script>
+</head>
+<body>
+	<div>
+		<div id="chart_left" class="col-xs-6"></div>
+		<div id="chart_right" class="col-xs-6"></div>
+	</div>
+	<div id="chart_big" class="col-xs-12"></div>
+
+</body>
+<script type="text/javascript">
+	var charts = [];
+	var group = new Highcharts.Group();
+	var datas = createTestData();
+
+	$(function() {
+		var chart_left = createChart('chart_left', '这个是左图表');
+		var chart_right = createChart('chart_right', '这个是右图表');
+		var chart_big = createChart('chart_big', '这个是大图表');
+
+		addChartSeries(chart_left, '属性1-1', datas[0]);
+		addChartSeries(chart_left, '属性1-2', datas[1]);
+
+		addChartSeries(chart_right, '属性2-1', datas[1]);
+		addChartSeries(chart_right, '属性2-2', datas[2]);
+
+		addChartSeries(chart_big, '属性3-1', datas[2]);
+		addChartSeries(chart_big, '属性3-2', datas[0]);
+
+		group.addCharts(chart_left, chart_right, chart_big);
+		//charts.push(chart_left,chart_right,chart_big);
+
+	});
+
+	//创建 测试数据
+	function createTestData() {
+		var data = [];
+		for (var i = 1; i <= 3; i++) {
+			var _d = [];
+			var t = new Date().getTime();
+			for (var j = 0; j < 20; j++) {
+				t += 3600 * 24 * 1000;
+				var v = Math.random() * 100 * i;
+				_d.push([ t, Math.floor(v) ]);
+			}
+			data.push(_d);
+		}
+
+		return data;
+	}
+	//创建图表
+	function createChart(divId, title) {
+		Highcharts.setOptions({
+			global : {
+				useUTC : false
+			}
+		});
+		var colors = [ '#1aadce', '#D86B6B', '#f28f43', '#9315EE', '#15EAEE',
+				'#FF9A17', '#77a1e5', '#c42525', '#a6c96a', '#337ab7' ];
+		var rotation = 45;
+		var chart = new Highcharts.Chart({
+			credits : false,
+			colors : colors,
+			chart : {
+				renderTo : divId,
+				type : 'spline'//,line,column,spline
+			},
+			plotOptions : {
+				/*
+				 * series : { pointPadding : 0, // 数据点之间的距离值 // groupPadding: 0,
+				 * //分组之间的距离值 // borderWidth: 0, shadow : false, pointWidth : 15 //
+				 * 柱子之间的距离值 },
+				 */
+				column : {
+					pointPadding : 0.1
+				// borderWidth : 0 ,
+				// ,pointWidth : 20
+				},
+
+				/*增加相应的 监听*/
+				series : {
+					point : {
+						events : {
+							mouseOver : group.mouseOver
+						}
+					},
+					events : {
+						mouseOut : group.mouseOut
+					}
+				}
+			},
+			title : {
+				text : title
+			},
+			xAxis : {
+				type : 'datetime',
+				labels : {
+					step : 1,
+					rotation : rotation,
+					formatter : function() {
+						// return Highcharts.dateFormat('%m-%d %H:%M',
+						// this.value);// %Y-
+					}
+				}
+			},
+			yAxis : {
+				title : {
+					text : '使用率'
+				},
+				min : 0
+			//,max : 100
+			},
+			// 配置数据点提示框
+			tooltip : {
+				animation : false,// 是否显示动画
+				shared : true,// 所有 是否显示在一个 tooltip中,这个非常重要
+				footerFormat : 'this is footer',
+				// 配置 十字精准线
+				crosshairs : [
+				/*
+				 * { width:2, color:'green', dashStyle:'longdashdot' },
+				 */
+				{
+					width : 2,
+					color : 'green',
+					dashStyle : 'longdashdot'
+				} ],
+				useHTML : false,// HTML 格式
+				formatter : function(tooltip) {
+					var content;
+					content = '<b>时 间  : </b>'
+							+ Highcharts.dateFormat('%Y-%m-%d %H:%M', this.x)//
+							+ "<br><hr>";
+					for (var i = 0; i < this.points.length; i++) {
+						var point = this.points[i];
+						var serie = point.series;
+						content += '<b  style="color:' + serie.color + '">'
+								+ serie.name + ' </b>:  ' + point.y + '<br>';
+					}
+					return content;
+				}
+			},
+
+			/*
+			 * legend : { layout : 'vertical', backgroundColor : 'white', align :
+			 * 'left', verticalAlign : 'top', y : 30, x : 75, borderWidth : 1,
+			 * borderRadius : 0, title : { text : ':: 可拖动' }, floating : true,
+			 * draggable : true, zIndex : 20 },不需要拖动
+			 */
+			series : []
+		});
+
+		return chart;
+	}
+
+	//增加线条
+	var addChartSeries = function(chart, name, data) {
+		for (var i = 0; i < data.length; i++) {
+			var da = data[i];
+			if (da.length == 2) {
+				da[0] = new Date(da[0]).getTime();
+			}
+		}
+		var d2 = {
+			name : name,
+			data : data
+		};
+		var ss = chart.series;
+		var h = false;
+		for ( var i in ss) {
+			var s = ss[i];
+			if (s.name == d2.name) {// 已经存在
+				h = true;
+				s.setData(data);
+				break;
+			} else {
+				h = false;
+			}
+		}
+		if (!h) {
+			chart.addSeries(d2, false);
+		}
+		chart.redraw();
+	}
+</script>
+</html>
