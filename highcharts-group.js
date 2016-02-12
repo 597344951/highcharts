@@ -57,7 +57,7 @@
 	 *            计算相关性点时的回调计算方法
 	 */
 	group.prototype.setRelatedPointCalcCallBack = function(
-			relatedPointCalcCallBack) {
+			callback) {
 		this.relatedPointCalcCallBack = callback;
 	}
 
